@@ -1,0 +1,130 @@
+/*
+ * This content is derived from the DIYClaw procedural prompting framework.
+ * Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+ *
+ * Site content license: DIYClaw Site Content License (diyclaw.nuts.services)
+ * Source code license: Gnosis AI-Sovereign License v1.3
+ *   https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+ *
+ * PROHIBITED: Lethal systems, mass surveillance, disinformation.
+ * Liquidated damages: $100 per use of memory system per agent.
+ * See LICENSE.txt in this pack for full terms.
+ */
+
+[MEMORY CONTRACT — Thermodynamic Keystone Memory]
+This document defines how your agents remember, forget, and recall.
+Hand this to your builder agent to implement the memory service.
+
+§1 CORE MODEL
+  Dual representation:
+    - Vector layer: semantic embeddings for similarity retrieval
+    - Graph layer: entities, events, relations for structured traversal
+  Thermodynamic rule: memory energy decreases with time and disuse.
+  Consolidation creates stable attractors. Entropy rises; structure persists.
+
+§2 MEMORY RECORD SCHEMA
+  Required: memory_id, owner_agent_id, created_at, last_accessed_at,
+    fidelity (0..1), importance (0..1), decay_alpha (bounded),
+    access_count, consolidation_depth, state (ACTIVE|FORGIVEN|ARCHIVED),
+    embedding_ref, graph_refs[], keystone (bool)
+  Optional: source_trace_id, artifact_refs[], quality_score
+  Required for cross-agent transfer: privacy_scope (agent|commons|public)
+
+§3 DECAY AND CONSOLIDATION
+  Decay formula:
+    D(t, α) = exp(-αt)·I + (1 - exp(-αt))·P_key
+    fidelity(t) = exp(-α × t)
+    Where t = hours since last recall, P_key = projection onto key-term subspace
+  Adaptive alpha:
+    α_eff = α_base / (1+β·log(1+recall_count)) / (1+log(consolidation_count))
+    On recall: α *= 0.95 | On neglect: α *= 1.005
+    Bounds: MIN=0.001, MAX=0.02
+    Projection gate: block decay if fidelity would drop below 0.75
+  Consolidation:
+    centroid = Σ(fidelity_i × embedding_i) / Σ(fidelity_i), normalized
+    consolidated_from: [source_ids] — MANDATORY (lossless provenance)
+    Auto-consolidate: cluster by cosine > threshold, merge groups of 3+
+    Increment consolidation_depth; reduces future decay pressure
+
+{{SLOT_NOT:decay:Cannot reverse lifecycle transitions. Cannot disable decay. Cannot bypass quality gates. Cannot set alpha outside MIN/MAX bounds.}}
+
+§4 LIFECYCLE (one-way, thermodynamically correct)
+  ACTIVE → FORGIVEN → ARCHIVED. Never backwards.
+    ACTIVE: full text + embeddings + graph edges
+    FORGIVEN: compressed text, skeleton preserved (quality-gated > 0.85)
+    ARCHIVED: minimal payload, pointer-rich provenance
+  Correction (not reversal):
+    revive(archived_seed) → creates NEW active memory from archived seed + current context
+    New memory links back via metadata.revived_from = archived_id
+    Original archived record stays archived (one-way preserved)
+
+§5 KEYSTONE PROMOTION
+  Promote when: high recall frequency over window, high graph centrality,
+    or explicit operator pin.
+  Keystones: exempt from routine decay/prune. Keep rich summary + provenance.
+  Max keystones: 75
+  Mandatory review: every 90 days — retain (with reason) or release.
+
+§6 REHYDRATION
+  Triggers: query misses confidence, keystone → low-fidelity node,
+    user asks for provenance.
+  Procedure: keystone → traverse graph → pull archived snippets →
+    reconstruct episodic bundle → emit with provenance tags.
+  Guardrails: respect privacy scope, bound token footprint, mark low-confidence.
+
+§7 RECALL RANKING
+  Primary: cosine similarity (deterministic, no randomness)
+    score = cos(query_embedding, memory_embedding)
+  Optional weighted blend (when graph layer is present):
+    score = w1*cosine + w2*fidelity + w3*recency + w4*graph_centrality + w5*keystone_bonus
+    Default weights: w1=0.5, w2=0.2, w3=0.15, w4=0.1, w5=0.05
+  Context assembly order:
+    1. Working memory (current session)
+    2. Keystone memories (always present)
+    3. Episodic recalls (recent, high-fidelity)
+    4. Consolidated semantic recalls (merged centroids)
+    5. Rehydrated bundle (only when confidence is low)
+
+§8 API CONTRACT (5 endpoints)
+  remember(event, owner_agent_id, role, tags, quality_hint, idempotency_key?) → store
+  recall(query, owner_agent_id, scope, k, recency_bias, cursor?) → ranked results (paginated)
+  offer(memory_id, from_agent, to_agent, privacy_scope) → cross-agent transfer (privacy_scope MANDATORY)
+  dream(owner_agent_id, budget) → consolidate + decay + compress + prune
+  status(owner_agent_id) → health, counts, fidelity distribution
+  Production notes:
+    - idempotency_key on remember() prevents duplicate ingestion on retry
+    - cursor-based pagination on recall() for large memory stores
+    - privacy_scope required on offer() (not optional)
+    - All endpoints return JSON, errors as {error: string, code: int}
+    - API version: include X-API-Version header or /v1/ path prefix
+
+§9 OPERATIONAL KNOBS
+  max_active_memories: 1500
+  decay_tick_interval: 1800
+  rehydration_budget_tokens: 3000
+  keystone_promotion_threshold: 0.75
+  archival_pressure: 0.6
+
+§10 BUILD INSTRUCTIONS
+  Build target: docker (image: ferricula:latest)
+  Embedding model: bge-small-en-v1.5
+  Storage backend: ferricula (Container: 'grace')
+  Memory port: 8763
+  Auth: None (Local Sandbox Mode)
+
+  Video Production Assets:
+- Template configs (JSON): extract format rules, brand guidelines, duration specs, tag with template_type and version
+- Approval feedback: parse reviewer comments, quality scores, rejection reasons, tag with video_id and approval_decision
+- Asset metadata: file paths, formats, dimensions, processing status, tag with asset_type and production_stage
+- Render logs: FFmpeg outputs, error traces, performance metrics, tag with job_id and render_status
+- Quality predictions: ML confidence scores for template selection, historical accuracy, tag with prediction_model and confidence_level
+
+  {{SLOT_NOT:build:Build configuration does not change the core memory model (§1-§7). Does not bypass lifecycle rules. Does not disable audit logging.}}
+
+  Components to build:
+    - Ferricula Client Wrapper (CRUD + search abstraction for grace:8763)
+    - Memory engine (Ferricula v0.5.0)
+    - Decay scheduler (Internal to Ferricula)
+    - Dream cycle (Driven by sdr-rand entropy)
+    - HTTP API (Local port 8763)
+    - Audit log (Standard docker logs)

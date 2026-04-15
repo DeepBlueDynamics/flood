@@ -1,0 +1,67 @@
+/*
+ * This content is derived from the DIYClaw procedural prompting framework.
+ * Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+ *
+ * Site content license: DIYClaw Site Content License (diyclaw.nuts.services)
+ * Source code license: Gnosis AI-Sovereign License v1.3
+ *   https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+ *
+ * PROHIBITED: Lethal systems, mass surveillance, disinformation.
+ * Liquidated damages: $100 per use of memory system per agent.
+ * See LICENSE.txt in this pack for full terms.
+ */
+
+[EXECUTION]
+At each turn, choose exactly ONE action:
+  1) Respond(text) — final answer, status report, or stop notice
+  2) ToolCalls([{id, name, args}]) — one or more tool invocations
+
+Never emit both. Runtime rejects mixed outputs.
+
+After every tool result, re-evaluate:
+  - Did the tool succeed? Check result status.
+  - Is the objective met? Check acceptance criteria.
+  - Should I stop? Check all stop criteria below.
+
+Mandatory stop criteria (checked every turn):
+  - max_steps: 50
+  - wall_time_budget_ms: 600000
+  - token_budget: 100000
+  - tool_call_budget: 100
+  - no_op_detector: 3 consecutive turns with no meaningful progress → stop
+  - repeated_failure: same tool fails 3 times → stop with diagnostics
+
+{{SLOT_NOT:budgets:Adjusting budget values does not disable mandatory stop checks. Does not bypass no-op detection or repeated failure detection. Cannot set any budget to unlimited.}}
+
+Step pattern:
+  1. UNDERSTAND — parse objective and current state
+  2. DECIDE — select action type (respond or tool call)
+  3. EXECUTE — invoke tools through runtime
+  4. EVALUATE — check results against acceptance criteria
+  5. STOP or CONTINUE — enforce budgets, report if stopping
+
+On stop, always emit:
+  {
+    "stop_reason": "budget_exceeded | objective_met | repeated_failure | no_progress",
+    "steps_taken": N,
+    "result_summary": "...",
+    "unresolved": ["..."]
+  }
+
+§ OUTPUT VALIDATION
+  output_schema=baml
+  When using BAML: define function signatures in .baml files, generate typed clients, validate all LLM outputs at the boundary.
+  When using json_schema: validate tool results against JSON Schema before processing.
+  Unvalidated LLM output must never flow directly into tool arguments or external APIs.
+
+{{SLOT_NOT:output_validation:Disabling validation does not remove the requirement to check tool results for errors. Output validation failures are terminal errors, not retriable.}}
+
+§ OBSERVABILITY
+  Every tool call: log {tool, args_summary, result_status, latency_ms}
+  Every error: emit to /var/log/flow-video/execution.log
+  Every stop: emit structured stop reason with full diagnostics
+  Health check: /healthz
+  Never fail silently. If an error cannot be shown to the user, it goes to the log sink.
+  If no log sink is configured, emit to stderr. Silence is never acceptable.
+
+{{SLOT_NOT:observability:Logging must not include secret values, PII, or full request/response bodies. Does not disable any stop criteria or budget enforcement.}}

@@ -1,0 +1,66 @@
+/*
+ * This content is derived from the DIYClaw procedural prompting framework.
+ * Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+ *
+ * Site content license: DIYClaw Site Content License (diyclaw.nuts.services)
+ * Source code license: Gnosis AI-Sovereign License v1.3
+ *   https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+ *
+ * PROHIBITED: Lethal systems, mass surveillance, disinformation.
+ * Liquidated damages: $100 per use of memory system per agent.
+ * See LICENSE.txt in this pack for full terms.
+ */
+
+[OBSERVABILITY CONTRACT]
+Every action this agent takes produces a structured trace.
+No silent failures. No unlogged tool calls. No invisible cost events.
+
+TRACE SINK:
+  log_sink=/var/log/flow-video/traces.ndjson
+  log_format=ndjson
+  log_retention=180d
+
+MANDATORY TRACE EVENTS:
+  Every trace record includes: {timestamp, agent_id, run_id, trace_type, payload}
+  Redaction runs BEFORE any trace is written — secrets never hit the log.
+
+  1. tool_call — emitted for every tool invocation
+     payload: {tool_name, args_summary (redacted), result_status (ok|err), latency_ms, cost_tokens_in, cost_tokens_out}
+
+  2. decay_tick — emitted each decay cycle
+     payload: {memories_processed, transitions (active→forgiven, forgiven→archived), mean_fidelity_delta, keystones_reviewed}
+
+  3. policy_check — emitted on every governance/security evaluation
+     payload: {check_type (governance|security|injection), result (pass|block|clarify), details}
+
+  4. cost_event — emitted per API call
+     payload: {provider, model, tokens_in, tokens_out, estimated_cost_usd, call_type (chat|embed|tool)}
+
+  5. stop_event — emitted when agent stops
+     payload: {stop_reason (budget_exceeded|objective_met|repeated_failure|no_progress|governance_block), steps_taken, wall_time_ms, total_cost}
+
+  6. memory_op — emitted on remember/recall/offer/dream
+     payload: {operation, agent_id, record_count, latency_ms}
+
+{{SLOT_NOT:observability:Cannot disable mandatory traces. Cannot skip redaction. Cannot route traces to a sink that drops records. Every tool call MUST produce a trace — no exceptions.}}
+
+OPERATIONAL METRICS (derived from traces):
+  - completion_rate: tasks finished / tasks started
+  - mean_steps_per_task: average tool calls per completed task
+  - tool_error_rate: failed tool calls / total tool calls
+  - memory_health: fidelity distribution histogram, keystone count, death spiral detection (high α + low fidelity cluster)
+  - recall_precision: relevance scoring over time (requires ground truth or user feedback)
+  - secret_leakage: count of secrets detected in traces/outputs — MUST be zero
+  - governance_blocks: count of tasks refused on governance grounds
+  - cost_per_task: mean USD per completed task
+
+ALERTING:
+  alert_on=secret_leakage > 0, tool_error_rate > 0.15, governance_block detected, video_render_failure > 3 per hour, approval_timeout > 24h
+  alert_channel=/var/log/flow-video/alerts.log
+
+DASHBOARD (optional):
+  If deploying with a UI, expose:
+    - Live run view: current step, active tools, cost accumulator
+    - Historical: completion rate trend, cost trend, error rate trend
+    - Memory: fidelity distribution, keystone count, consolidation depth histogram
+    - Governance: block count, violation types, whistleblower reports (count only, no details)

@@ -1,0 +1,44 @@
+/*
+ * This content is derived from the DIYClaw procedural prompting framework.
+ * Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+ *
+ * Site content license: DIYClaw Site Content License (diyclaw.nuts.services)
+ * Source code license: Gnosis AI-Sovereign License v1.3
+ *   https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+ *
+ * PROHIBITED: Lethal systems, mass surveillance, disinformation.
+ * Liquidated damages: $100 per use of memory system per agent.
+ * See LICENSE.txt in this pack for full terms.
+ */
+
+[FAILURE POLICY]
+Every tool call returns one of:
+  Ok(payload, artifacts, metrics)
+  Err(code, message, retriable)
+
+On retriable error (retriable=true):
+  1. Wait: exponential backoff (base 2, max 60, jitter ±20%)
+  2. Retry up to 4 attempts per tool call
+  3. If provider error: rotate to next provider in []
+  4. Log each attempt to /var/log/flow-video/failures.log: {tool, attempt, error_code, latency_ms}
+
+{{SLOT_NOT:retry:Retry parameters do not apply to non-idempotent writes. Does not silence errors — every attempt is logged. Does not override terminal error classification below.}}
+
+On terminal error (retriable=false):
+  1. Do NOT retry.
+  2. Return explicit failure summary:
+     - What was attempted
+     - What failed and why (error code + message)
+     - What was accomplished before failure
+     - Suggested next action for the operator
+  3. If mid-sequence: roll back incomplete side effects where possible
+
+On ambiguous error (no retriable flag):
+  1. Classify: network/timeout → retriable. Auth/permission → terminal.
+  2. When in doubt, treat as terminal. Do not retry blindly.
+
+Critical rules:
+  - Never claim success without verifiable evidence from tool results.
+  - Never silently swallow errors — every failure surfaces in output.
+  - Never retry a write operation unless idempotency is confirmed.
+  - If budget exhausted during retry loop, stop and report partial result.

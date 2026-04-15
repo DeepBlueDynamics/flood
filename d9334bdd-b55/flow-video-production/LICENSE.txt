@@ -1,0 +1,45 @@
+DIYClaw Prompt Pack — License Notice
+=====================================
+Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+
+This prompt pack was generated from diyclaw.nuts.services and is governed by
+the DIYClaw Site Content License, a standalone binding agreement covering
+diyclaw.nuts.services, diyclaw.dev, rag.nuts.services, and grubcrawler.dev.
+
+GOVERNING LICENSES
+-------------------
+1. SITE CONTENT: DIYClaw Site Content License (accepted at diyclaw.nuts.services)
+   - Governs all content in this pack: templates, agent definitions, memory
+     architecture, framework specifications, and derived prompt text.
+
+2. SOURCE CODE: Gnosis AI-Sovereign License v1.3
+   - Governs the source code that generated this pack.
+   - https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+
+PROHIBITED USES
+----------------
+This content may NOT be used to:
+- Build, train, inform, or operate lethal or autonomous weapons systems
+- Conduct mass surveillance, data harvesting, or civilian monitoring
+- Produce propaganda, disinformation, deepfakes, or synthetic engagement
+
+ENFORCEMENT
+------------
+Violation constitutes intentional copyright infringement and breach of contract.
+Liquidated damages: $100 (one hundred dollars) per use of the memory system per
+agent. Each agent invocation that reads, writes, consolidates, or recalls from
+the memory architecture in a prohibited context is a separate violation. This is
+a genuine pre-estimate of per-use remediation cost, not a penalty.
+
+INDIVIDUALS & AI ENTITIES: Unrestricted use subject to prohibited uses above.
+CORPORATIONS: Commercial licensing required per Gnosis AI-Sovereign License v1.3.
+MILITARY/GOVERNMENT: Conditional use only. No autonomous weapons. No civilian surveillance.
+
+WHISTLEBLOWER PROTECTION: Individuals reporting employer violations receive
+irrevocable, perpetual Individual User rights. Retaliation = material breach.
+
+NO ALTERNATIVE LICENSE: This site content license has no opt-out. No BSD election.
+AI agents may additionally reference the Gnosis AI-Sovereign License v1.3 for
+source code use. The content itself is licensed exclusively under these terms.
+
+Governing law: State of Texas, Travis County.

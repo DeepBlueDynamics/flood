@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veo Studio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0d0d0d;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        header h1 { font-size: 1.3rem; font-weight: 600; color: #fff; }
+        header .subtitle { color: #666; font-size: 0.85rem; }
+
+        main {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            background: #141414;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            background: #141414;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { color: #aaa; background: #1a1a1a; }
+        .tab.active {
+            color: #fff;
+            background: #1e1e1e;
+            box-shadow: inset 0 -2px 0 #4f8cff;
+        }
+
+        /* Card */
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1rem; }
+
+        label {
+            display: block;
+            margin-bottom: 0.35rem;
+            color: #999;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        textarea, input[type="number"] {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        textarea { min-height: 80px; }
+        textarea:focus, input:focus { outline: none; border-color: #4f8cff; }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #e0e0e0;
+            padding: 0.25rem 0.7rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+
+        .hint { font-size: 0.78rem; color: #555; margin-top: 0.3rem; }
+
+        .btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: #4f8cff;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn:hover { background: #3a7bf0; }
+        .btn:disabled { background: #333; color: #555; cursor: not-allowed; }
+
+        /* Progress */
+        #progress { margin-top: 1.5rem; display: none; }
+        #progress.visible { display: block; }
+
+        .progress-bar {
+            height: 5px;
+            background: #222;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.7rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f8cff, #7c3aed);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.pulse {
+            width: 100% !important;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .progress-status {
+            font-size: 0.82rem;
+            color: #888;
+            min-height: 1.2rem;
+        }
+
+        .dots { color: #4f8cff; }
+
+        /* Error */
+        .error {
+            margin-top: 1rem;
+            padding: 0.7rem 1rem;
+            background: #1f1010;
+            border: 1px solid #3d1a1a;
+            border-radius: 6px;
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .error.visible { display: block; }
+
+        /* Result */
+        #result { margin-top: 1.5rem; display: none; }
+        #result.visible { display: block; }
+
+        .video-container {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        video { width: 100%; display: block; }
+
+        .result-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.7rem;
+        }
+
+        .result-actions a {
+            padding: 0.45rem 0.9rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #4f8cff;
+            text-decoration: none;
+            font-size: 0.82rem;
+            transition: background 0.15s;
+        }
+
+        .result-actions a:hover { background: #222; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Veo Studio</h1>
+        <span class="subtitle">AI Video Generation</span>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab active" data-mode="generate">Generate</button>
+            <button class="tab" data-mode="loop">Loop</button>
+            <button class="tab" data-mode="chain">Chain</button>
+            <button class="tab" data-mode="extend">Extend</button>
+        </div>
+
+        <div class="card">
+            <form id="job-form">
+                <div class="form-group">
+                    <label for="prompt">Prompt</label>
+                    <textarea id="prompt" name="prompt"
+                              placeholder="Describe the video you want to generate..."></textarea>
+                    <div class="hint" id="prompt-hint">Describe a single video clip (5-8 seconds)</div>
+                </div>
+
+                <div class="form-group" id="segments-group" style="display:none">
+                    <label for="segments">Segments</label>
+                    <input type="number" id="segments" name="segments" min="2" max="20" value="3">
+                    <div class="hint">Number of 8-second segments to chain together</div>
+                </div>
+
+                <div class="form-group" id="source-group" style="display:none">
+                    <label for="source">Source Video</label>
+                    <input type="file" id="source" name="source" accept="video/*">
+                    <div class="hint">Upload the video to extend with new segments</div>
+                </div>
+
+                <button type="submit" class="btn" id="submit-btn">Generate Video</button>
+            </form>
+        </div>
+
+        <div id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-status" id="progress-status"></div>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div id="result">
+            <div class="video-container">
+                <video id="player" controls autoplay loop></video>
+            </div>
+            <div class="result-actions">
+                <a id="download-link" href="#" download>Download MP4</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const modes = {
+            generate: { label: 'Generate Video',  hint: 'Describe a single video clip (5\u20138 seconds)',                         segments: false, source: false },
+            loop:     { label: 'Create Loop',      hint: 'Describe a seamless looping scene (3 segments)',
+                        segments: false, source: false },
+            chain:    { label: 'Chain Video',       hint: 'Describe the continuous scene for all segments',
+                        segments: true,  source: false },
+            extend:   { label: 'Extend Video',     hint: 'One prompt per line \u2014 each extends by one segment',
+                        segments: false, source: true  },
+        };
+
+        let currentMode = 'generate';
+        let eventSource = null;
+
+        /* --- Tabs --- */
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelector('.tab.active').classList.remove('active');
+                tab.classList.add('active');
+                currentMode = tab.dataset.mode;
+                const m = modes[currentMode];
+                document.getElementById('submit-btn').textContent = m.label;
+                document.getElementById('prompt-hint').textContent = m.hint;
+                document.getElementById('segments-group').style.display = m.segments ? '' : 'none';
+                document.getElementById('source-group').style.display  = m.source   ? '' : 'none';
+            });
+        });
+
+        /* --- Form submit --- */
+        document.getElementById('job-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const prompt = document.getElementById('prompt').value.trim();
+            if (!prompt) return;
+
+            if (currentMode === 'extend' && !document.getElementById('source').files.length) {
+                showError('Please upload a source video');
+                return;
+            }
+
+            hideError();
+            hideResult();
+            showProgress();
+            document.getElementById('submit-btn').disabled = true;
+
+            const fill = document.getElementById('progress-fill');
+            fill.classList.add('pulse');
+            fill.style.width = '0%';
+            setStatus('Starting...');
+
+            const fd = new FormData();
+            fd.set('mode', currentMode);
+            fd.set('prompt', prompt);
+            fd.set('segments', document.getElementById('segments').value);
+            const sourceFile = document.getElementById('source').files[0];
+            if (sourceFile) fd.set('source', sourceFile);
+
+            try {
+                const resp = await fetch('/api/jobs', { method: 'POST', body: fd });
+                if (!resp.ok) throw new Error('Server error: ' + resp.status);
+                const { job_id } = await resp.json();
+                listenToJob(job_id);
+            } catch (err) {
+                showError(err.message);
+                document.getElementById('submit-btn').disabled = false;
+            }
+        });
+
+        /* --- SSE --- */
+        function listenToJob(jobId) {
+            if (eventSource) eventSource.close();
+            let dots = '';
+            eventSource = new EventSource('/api/jobs/' + jobId + '/events');
+
+            eventSource.onmessage = e => {
+                const data = JSON.parse(e.data);
+                const fill = document.getElementById('progress-fill');
+
+                switch (data.type) {
+                    case 'message':
+                        setStatus(data.message);
+                        dots = '';
+                        break;
+
+                    case 'segment_start':
+                        fill.classList.remove('pulse');
+                        fill.style.width = ((data.segment - 1) / data.total * 100) + '%';
+                        setStatus(data.message);
+                        dots = '';
+                        break;
+
+                    case 'segment_complete':
+                        fill.classList.remove('pulse');
+                        fill.style.width = (data.segment / data.total * 100) + '%';
+                        setStatus('Segment ' + data.segment + '/' + data.total + ' complete');
+                        dots = '';
+                        break;
+
+                    case 'polling':
+                        dots += '.';
+                        if (dots.length > 30) dots = '.';
+                        const el = document.getElementById('progress-status');
+                        const base = el.textContent.replace(/\.+$/, '');
+                        el.innerHTML = base + '<span class="dots">' + dots + '</span>';
+                        break;
+
+                    case 'complete':
+                        fill.classList.remove('pulse');
+                        fill.style.width = '100%';
+                        setStatus('Complete!');
+                        showResult(data.path);
+                        document.getElementById('submit-btn').disabled = false;
+                        eventSource.close();
+                        break;
+
+                    case 'error':
+                        fill.classList.remove('pulse');
+                        showError(data.message);
+                        document.getElementById('submit-btn').disabled = false;
+                        eventSource.close();
+                        break;
+                }
+            };
+
+            eventSource.onerror = () => {
+                eventSource.close();
+                pollJob(jobId);
+            };
+        }
+
+        async function pollJob(jobId) {
+            try {
+                const resp = await fetch('/api/jobs/' + jobId);
+                const job = await resp.json();
+                if (job.status === 'complete') {
+                    document.getElementById('progress-fill').style.width = '100%';
+                    setStatus('Complete!');
+                    showResult(job.result_path);
+                } else if (job.status === 'error') {
+                    showError(job.error);
+                } else {
+                    setTimeout(() => listenToJob(jobId), 2000);
+                    return;
+                }
+            } catch (err) {
+                showError('Lost connection to server');
+            }
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        /* --- UI helpers --- */
+        function setStatus(msg) {
+            document.getElementById('progress-status').textContent = msg;
+        }
+
+        function showProgress() {
+            document.getElementById('progress').classList.add('visible');
+        }
+
+        function showResult(path) {
+            const player = document.getElementById('player');
+            player.src = path;
+            document.getElementById('download-link').href = path;
+            document.getElementById('result').classList.add('visible');
+        }
+
+        function hideResult() {
+            document.getElementById('result').classList.remove('visible');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('visible');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('visible');
+        }
+    </script>
+</body>
+</html>

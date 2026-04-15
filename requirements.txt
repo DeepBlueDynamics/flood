@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+python-multipart
+google-genai
+opencv-python-headless
+requests
+python-dotenv

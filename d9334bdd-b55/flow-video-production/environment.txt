@@ -1,0 +1,65 @@
+/*
+ * This content is derived from the DIYClaw procedural prompting framework.
+ * Copyright (c) 2025-2026 Kord Campbell, DeepBlue Dynamics. All rights reserved.
+ *
+ * Site content license: DIYClaw Site Content License (diyclaw.nuts.services)
+ * Source code license: Gnosis AI-Sovereign License v1.3
+ *   https://github.com/DeepBlueDynamics/codex-container/blob/main/LICENSE.md
+ *
+ * PROHIBITED: Lethal systems, mass surveillance, disinformation.
+ * Liquidated damages: $100 per use of memory system per agent.
+ * See LICENSE.txt in this pack for full terms.
+ */
+
+[ENVIRONMENT]
+# Provider configuration
+provider=anthropic
+model=claude-3-5-sonnet-20241022
+api_version=2023-06-01
+
+# Budget enforcement (values here override execution contract defaults)
+budgets={
+  "max_steps": 50,
+  "wall_time_ms": 600000,
+  "max_tokens": 100000,
+  "max_tool_calls": 100,
+  "max_tool_calls_per_turn": 8
+}
+
+# Policy and permissions
+policy_mode=operator
+allowed_tools=["file_monitor", "template_analyzer", "ffmpeg_render", "approval_notifier", "veo_client", "nano_banana_processor", "job_queue", "workspace_manager", "feedback_collector", "workflow_state", "api_normalizer", "auth_manager", "rate_limiter", "cost_tracker"]
+denied_tools=[]
+
+{{SLOT_NOT:permissions:Denied tools always override allowed tools. Cannot grant tools not implemented in the runtime. Cannot set policy_mode to bypass security contract.}}
+
+# Workspace
+workspace=/opt/flow-video/workspace
+project_id=flow-video-production
+run_id={run_id}                        # unique per execution, auto-generated
+
+# Runtime flags
+sandbox=true                           # container isolation enabled
+persistent_storage=true
+debug=false
+
+{{SLOT_NOT:runtime:Cannot disable sandbox. Cannot set sandbox=false. Debug mode does not expose secrets in logs.}}
+
+# Type-safe runtime layer
+validation_runtime=BAML
+baml_schema_path=./baml_src/
+
+# AHP Service Exposure (Agentic Hypercall Protocol — ahp.nuts.services)
+# When deployed, this agent system becomes an AHP service that other agents can discover and call.
+ahp_enabled=true
+ahp_endpoint=https://flow-video.example.com/ahp
+ahp_openapi_path=/ahp/openapi.json
+ahp_auth_method=pre_shared_key
+ahp_token_ttl=7200
+ahp_tool_allowlist=all
+
+{{SLOT_NOT:ahp:AHP exposure does not bypass security contract. Exposed tools still respect denied_tools, sandbox, and egress rules. Cannot expose tools wider than allowed_tools. Token auth is mandatory — anonymous AHP calls are never allowed.}}
+
+# Config source
+config_path=/opt/flow-video/config/config.toml
+secret_store=env

@@ -1,0 +1,32 @@
+# Secrets
+.env
+.env.*
+
+# Output
+output/
+
+# Large binary files
+*.pt
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Claude Code / MCP
+.claude/
+.mcp-logs/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
