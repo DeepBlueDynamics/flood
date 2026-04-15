@@ -166,6 +166,11 @@ async def list_jobs():
             sorted(jobs.values(), key=lambda j: j.created_at, reverse=True)]
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")

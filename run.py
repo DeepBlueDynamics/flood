@@ -1,10 +1,19 @@
 """Local development entry point — loads .env and starts uvicorn."""
 
+import logging
 import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+class _SuppressHealthChecks(logging.Filter):
+    def filter(self, record):
+        return "/health" not in record.getMessage()
+
+
+logging.getLogger("uvicorn.access").addFilter(_SuppressHealthChecks())
 
 if __name__ == "__main__":
     import uvicorn
